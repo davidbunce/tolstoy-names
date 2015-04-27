@@ -25,7 +25,7 @@ module.exports = function(grunt) {
         separator: ';'
       },
       dist: {
-        src: ['assets/vendor/_bower.js', 'src/js/*.js'],
+        src: ['assets/vendor/_bower.js', 'assets/js/*.js'],
         dest: 'dist/js/<%= pkg.name %>.js'
       }
     },

@@ -7,11 +7,13 @@ var ApplicationRouter = Backbone.Router.extend({
 
         // 404 template
         this.notFoundView = new view({template: '#notfound'});
+
+        console.log(el);
     },
 
     routes: {
         '': function () {
-            this.switchView(this.pageView);
+            this.getPageContent(2, this.pageView);
         },
 
         '*else': function () {
@@ -20,9 +22,30 @@ var ApplicationRouter = Backbone.Router.extend({
     },
 
     // Switch out views
-    switchView: function (view) {
+    switchView: function (view, data) {
+        if (this.currentView) {
+            this.currentView.remove();
+        }
+
         this.el.html(view.el);
-        view.render();
+        view.render(data);
+        console.log(data);
+        // this.currentView = view;
+    },
+
+    // Fetch the actual content from WP API
+    getPageContent: function (pageID, view) {
+        var self = this;
+
+        page.fetch({
+            data: jQuery.param({ type: 'page', 'filter[page_id]': pageID }),
+            processData: true,
+            success: function (result) {
+                var page = result.toJSON();
+                self.switchView(view, page[0]);
+            }
+        });
+
     }
 });
 
@@ -33,13 +56,31 @@ var view = Backbone.View.extend({
     },
 
     render: function (data) {
-        var content = _.template($(this.template).html());
-        $(this.el).html(content);
+        var content = _.template(jQuery(this.template).html(), {}),
+        	vars = {data: data},
+        	html = content(vars);
+
+        jQuery(this.el).html(html);
     }
 });
 
 // Kick off router
-var router = new ApplicationRouter($('#content'));
+var router = new ApplicationRouter(jQuery('#content'));
+var data = '';
+
+// Pages collection
+var pageCollection = Backbone.Collection.extend({  
+    url: '/wp-json/pages'
+});
+
+var page = new pageCollection();
+
+// Pages collection
+var postCollection = Backbone.Collection.extend({  
+    url: '/wp-json/posts'
+});
+
+var post = new postCollection();
 
 // Use history API
-Backbone.history.start();  
+Backbone.history.start(); 
